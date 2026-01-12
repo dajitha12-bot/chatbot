@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulation-Driven Multi-Agent AI Chatbot</title>
+
+  <!-- ===================== CSS ===================== -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #chatBox {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+
+    .user {
+      color: #2980b9;
+      margin-bottom: 5px;
+    }
+
+    .ai {
+      color: #27ae60;
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 75%;
+      padding: 8px;
+    }
+
+    button {
+      padding: 8px 15px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #27ae60;
+    }
+
+    .metric {
+      margin: 8px 0;
+      font-weight: bold;
+    }
+
+    .high { color: red; }
+    .medium { color: orange; }
+    .low { color: green; }
+  </style>
+</head>
+
+<body>
+
+<h2>Agentic AI – Supply Chain Risk Simulation Chatbot</h2>
+
+<div class="container">
+
+  <!-- ===================== CHATBOT ===================== -->
+  <div class="card">
+    <h3>🤖 AI Chatbot</h3>
+
+    <div id="chatBox"></div>
+
+    <input id="userInput" placeholder="Ask about supplier risk, phantom stock..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div class="card">
+    <h3>📊 Live Risk Dashboard</h3>
+
+    <div class="metric">Phantom Stock: <span id="phantom">--</span>%</div>
+    <div class="metric">Capacity Utilization: <span id="capacity">--</span></div>
+    <div class="metric">Risk Score: <span id="risk">--</span></div>
+    <div class="metric">Alert Status: <span id="alert">--</span></div>
+
+    <hr />
+
+    <p>
+      This dashboard updates automatically based on
+      AI agent simulation, risk propagation, and alert thresholds.
+    </p>
+  </div>
+
+</div>
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+  async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+
+    if (!input.value) return;
+
+    // Show user message
+    chatBox.innerHTML += `<div class="user"><b>You:</b> ${input.value}</div>`;
+
+    // Call backend
+    const response = await fetch("http://localhost:3000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input.value })
+    });
+
+    const data = await response.json();
+
+    // Show AI response
+    chatBox.innerHTML += `<div class="ai"><b>AI:</b> ${data.answer}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Update dashboard
+    document.getElementById("phantom").innerText = data.metrics.phantom;
+    document.getElementById("capacity").innerText =
+      (data.metrics.capacityUtilization * 100).toFixed(1) + "%";
+
+    document.getElementById("risk").innerText = data.metrics.risk;
+
+    const alertEl = document.getElementById("alert");
+    alertEl.innerText = data.metrics.alert;
+
+    if (data.metrics.alert.includes("HIGH")) alertEl.className = "high";
+    else if (data.metrics.alert.includes("MEDIUM")) alertEl.className = "medium";
+    else alertEl.className = "low";
+
+    input.value = "";
+  }
+</script>
+
+</body>
+</html>
